@@ -1,0 +1,12 @@
+# 公開リポジトリなので、アプリに必要なファイルだけを入れる（それ以外はすべて除外）
+/*
+!/.gitignore
+!/index.html
+!/mudamie.html
+!/images/
+/images/*
+!/images/chara/
+/images/chara/*
+!/images/chara/app/
+!/images/chara/icon/
+.DS_Store

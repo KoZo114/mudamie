@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ムダミエ</title>
+<link rel="icon" type="image/png" sizes="32x32" href="images/chara/icon/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/chara/icon/apple-touch-icon.png">
+<style>
+:root{--bg:#f5f3ee;--card:#fff;--ink:#22252a;--sub:#6b6f76;--line:#e3e0d8;--accent:#2f6f5e;--accent-ink:#fff;--warn:#b8641f;--bad:#b23a3a;--good:#2f6f5e;--chip:#eef3f1;--bar:#d9e6e1;--work:#3f6ea8;--work-ink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b;--card:#1f2226;--ink:#e9e7e2;--sub:#9aa0a6;--line:#30353a;--accent:#5fb39a;--accent-ink:#0f1a16;--warn:#e08a52;--bad:#e06a6a;--good:#5fb39a;--chip:#22302b;--bar:#2a3a34;--work:#7aa5dc;--work-ink:#0f1a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.6}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:760px;margin:0 auto}
+h1{font-size:17px;margin:0;letter-spacing:.02em}
+.month{display:flex;align-items:center;gap:4px}
+.month input{width:132px}
+nav{display:flex;gap:6px;max-width:760px;margin:8px auto 0}
+nav button{flex:1;padding:8px 0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:14px}
+nav button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+main{max-width:760px;margin:0 auto;padding:12px 16px 80px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px}
+label{font-size:13px;color:var(--sub);display:block;margin-bottom:4px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:120px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>*{flex:1;min-width:120px}
+.btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-size:14px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.icon{border:none;background:none;color:var(--sub);font-size:18px;padding:4px 8px;cursor:pointer}
+.hint{font-size:12.5px;color:var(--sub);margin:6px 0 0}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:none}
+.list .nm{flex:1;min-width:0}
+.list .nm b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list .nm small{color:var(--sub)}
+.amt{font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--chip);border:1px solid var(--line);color:var(--ink);cursor:pointer;white-space:nowrap}
+.chip.浪費{background:color-mix(in srgb,var(--bad) 15%,transparent);border-color:var(--bad)}
+.chip.投資{background:color-mix(in srgb,var(--accent) 18%,transparent);border-color:var(--accent)}
+.chip.fx{cursor:pointer}
+.chip.仕事{background:color-mix(in srgb,var(--work) 18%,transparent);border-color:var(--work)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:7px 0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg button.on[data-book="仕事"],.seg button.on[data-filter="仕事"]{background:var(--work);color:var(--work-ink);border-color:var(--work)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi{background:var(--bg);border-radius:10px;padding:10px}
+.kpi span{font-size:12px;color:var(--sub);display:block}
+.kpi b{font-size:19px;font-variant-numeric:tabular-nums}
+.kpis.three{grid-template-columns:1fr 1fr}
+.kpis.three .kpi{min-width:0;padding:8px 10px}
+.kpis.three b{font-size:16px;white-space:nowrap}
+@media (min-width:480px){.kpis.three{grid-template-columns:repeat(3,1fr)}}
+#summary{display:grid;gap:10px}
+@media (min-width:560px){#summary{grid-template-columns:1fr 1fr;align-items:center;gap:10px 24px}}
+#summary .hint{margin:4px 0 0}
+#summary .note{grid-column:1/-1;margin:0}
+.hero-label{font-size:13px;color:var(--sub)}
+.hero-num{font-size:34px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.hero-num.neg{color:var(--bad)}
+.flow{margin:0}
+.flow div{display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:14px}
+.flow dt{color:var(--sub)}
+.flow dd{margin:0;font-variant-numeric:tabular-nums}
+.flow .sub{border-top:1px solid var(--line);font-weight:600}
+.flow .sub dt{color:var(--ink)}
+.more summary{cursor:pointer;color:var(--accent);font-size:13.5px;padding:2px 0}
+.more[open] summary{margin-bottom:10px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bar i.over{background:var(--warn)}
+.bar .g{position:absolute;top:-2px;width:2px;height:12px;background:var(--ink);opacity:.55}
+.cat{margin-bottom:12px}
+.cat .h{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:3px}
+.cat .tag{margin-left:6px}
+.cat .s{font-size:12px;color:var(--sub);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.stack{display:flex;gap:2px;height:14px;border-radius:99px;overflow:hidden;margin:6px 0 8px}
+.stack div{height:100%}
+.legend{display:flex;gap:12px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.adv{border-left:4px solid var(--line);padding:8px 10px;margin-bottom:10px;background:var(--bg);border-radius:0 10px 10px 0}
+.adv.bad{border-color:var(--bad)}.adv.warn{border-color:var(--warn)}.adv.good{border-color:var(--good)}
+.adv b{display:block;margin-bottom:2px}
+.adv p{margin:0;font-size:13.5px;color:var(--sub)}
+.chara{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.chara img{width:132px;height:132px;flex:none;margin-left:-12px}
+.chara .say{position:relative;flex:1;min-width:0;background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.chara .say::before{content:"";position:absolute;left:-6px;top:50%;width:10px;height:10px;margin-top:-5px;background:var(--chip);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
+.chara .say:first-child::before{display:none}
+.empty{color:var(--sub);text-align:center;padding:16px 0;font-size:14px}
+.gl{display:grid;grid-template-columns:1fr 66px 100px;gap:6px 8px;align-items:center}
+.gl input{text-align:right;font-variant-numeric:tabular-nums;padding:8px}
+.gl input:disabled{opacity:.5}
+.gl .gh{font-size:12px;color:var(--sub);text-align:right}
+.hint.over{color:var(--bad)}
+.fx-row{display:grid;grid-template-columns:1fr 96px 30px;gap:6px;padding:8px 0;border-bottom:1px solid var(--line);align-items:center}
+.fx-row .fx-del{grid-column:3;grid-row:1;padding:4px}
+.fx-row select{grid-column:1/3;grid-row:2}
+.fx-row input[data-fc-amount]{text-align:right;font-variant-numeric:tabular-nums}
+@media (min-width:560px){
+  .fx-row{grid-template-columns:1fr 110px 130px 30px}
+  .fx-row select{grid-column:3;grid-row:1}
+  .fx-row .fx-del{grid-column:4}
+}
+.list input[type=checkbox]{width:auto;flex:none}
+.list li.off{opacity:.5}
+#csvRows{max-height:60vh;overflow:auto;margin:8px 0}
+.tag{font-size:11px;padding:1px 6px;border-radius:99px;border:1px solid var(--warn);color:var(--warn);white-space:nowrap}
+.tag.dup{border-color:var(--sub);color:var(--sub)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>ムダミエ</h1>
+    <div class="month">
+      <button class="icon" id="prev" aria-label="前月">‹</button>
+      <input type="month" id="month">
+      <button class="icon" id="next" aria-label="翌月">›</button>
+    </div>
+  </div>
+  <nav>
+    <button data-tab="input" class="on">入力</button>
+    <button data-tab="analysis">分析</button>
+    <button data-tab="settings">設定</button>
+  </nav>
+</header>
+
+<main>
+<!-- 入力 -->
+<section id="tab-input">
+  <div class="card">
+    <h2>お店の売上と経費 <span id="bizMonth" style="color:var(--sub);font-weight:400"></span></h2>
+    <div class="row">
+      <div><label>売上（円）</label><input id="bizSales" inputmode="numeric" placeholder="例：800000"></div>
+      <div><label>経費の合計（円）</label><input id="bizExpense" inputmode="numeric" placeholder="例：500000"></div>
+    </div>
+    <p class="hint" id="bizResult"></p>
+    <p class="hint" id="bizNote"></p>
+  </div>
+
+  <div class="card">
+    <h2>入力先</h2>
+    <div class="seg" id="book"><button data-book="一般" class="on">一般（家計）</button><button data-book="仕事">仕事（事業）</button></div>
+    <p class="hint">下の入力欄は、ここで選んだ区分に入ります。開き直すと「一般」に戻ります。</p>
+  </div>
+
+  <div class="card">
+    <h2>カード明細の取り込み（CSV）</h2>
+    <input type="file" id="csvFile" accept=".csv,text/csv">
+    <p class="hint">カード会社のサイトから出したCSVを選びます。ファイルはこのブラウザの中だけで読み取ります。取り込む前に確認の一覧が出ます。</p>
+    <div id="csvPreview" class="hide">
+      <p style="margin:10px 0 0"><b id="csvSum"></b></p>
+      <p class="hint" id="csvNote"></p>
+      <ul class="list" id="csvRows"></ul>
+      <div class="row">
+        <button class="btn" id="csvOk"></button>
+        <button class="btn ghost" id="csvCancel">やめる</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>まとめて貼り付け</h2>
+    <textarea id="bulk" placeholder="例：&#10;家賃 85000&#10;スーパー 4,320円&#10;Netflix 1490&#10;コンビニ 580&#10;食費 外食ランチ 1200"></textarea>
+    <p class="hint">1行に「項目 金額」。カテゴリは自動で推定します（行頭にカテゴリ名を書けば指定も可）。</p>
+    <div class="row" style="margin-top:8px"><button class="btn" id="bulkAdd">一般に取り込む</button></div>
+  </div>
+
+  <div class="card">
+    <h2>1件ずつ追加</h2>
+    <div class="row">
+      <div><label>項目</label><input id="fName" placeholder="例：カフェ"></div>
+      <div><label>金額（円）</label><input id="fAmt" inputmode="numeric" placeholder="例：650"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div><label>カテゴリ</label><select id="fCat"></select></div>
+      <div><label>分類</label><select id="fType"><option>消費</option><option>浪費</option><option>投資</option></select></div>
+    </div>
+    <div class="row" style="margin-top:10px;align-items:center">
+      <label style="display:flex;align-items:center;gap:6px;margin:0;color:var(--ink)"><input type="checkbox" id="fFixed" style="width:auto"> 固定費（毎月ほぼ同額）</label>
+      <button class="btn" id="addOne" style="flex:0">一般に追加</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <h2 style="margin:0">今月の支出 <span id="cnt" style="color:var(--sub);font-weight:400"></span></h2>
+      <button class="btn ghost sm" id="copyFixed">前月の固定費をコピー</button>
+    </div>
+    <p class="hint" style="margin:0 0 6px" id="bookSum"></p>
+    <div class="seg" id="listFilter" style="margin-bottom:6px"><button data-filter="すべて" class="on">すべて</button><button data-filter="一般">一般</button><button data-filter="仕事">仕事</button></div>
+    <p class="hint" style="margin:0 0 6px">分類チップをタップ：消費→浪費→投資。「固」タップで固定／変動、「一般／仕事」タップで区分を切替。</p>
+    <ul class="list" id="items"></ul>
+  </div>
+</section>
+
+<!-- 分析 -->
+<section id="tab-analysis" class="hide">
+  <div class="card" id="summary"></div>
+  <div class="card">
+    <h2>アドバイス</h2>
+    <div class="chara" id="chara"></div>
+    <div id="advice"></div>
+  </div>
+  <div class="card">
+    <h2>家計の数字（一般）</h2>
+    <div class="kpis three" id="kpis"></div>
+  </div>
+  <div class="card">
+    <h2>消費・浪費・投資のバランス（一般）</h2>
+    <div id="types"></div>
+  </div>
+  <div class="card">
+    <h2>カテゴリ別（一般・線＝目安）</h2>
+    <div id="cats"></div>
+  </div>
+  <div class="card">
+    <h2>金額の大きい支出（一般）</h2>
+    <ul class="list" id="top"></ul>
+  </div>
+  <div class="card">
+    <h2>相談用テキスト</h2>
+    <p class="hint" style="margin-top:0">今月の集計をテキストにしてコピーします。Claudeに貼り付けると、より踏み込んだ相談ができます。</p>
+    <button class="btn" id="copySummary" style="margin-top:6px">集計をコピー</button>
+  </div>
+</section>
+
+<!-- 設定 -->
+<section id="tab-settings" class="hide">
+  <div class="card">
+    <h2>手取り月収</h2>
+    <input id="income" inputmode="numeric" placeholder="例：300000">
+    <p class="hint">目安との比較・貯蓄率の計算に使います。ボーナスは含めない月額で。</p>
+    <p class="hint">個人事業主の場合は、事業の経費と税金などの分を除いて、生活費として自分に渡す決まった額を入れてください。比べる相手は「一般」の支出だけで、「仕事」の支出は含めません。</p>
+  </div>
+  <div class="card">
+    <h2>毎月の固定費</h2>
+    <p class="hint" style="margin-top:0">ここに入れた固定費は、毎月自動で「一般」の支出に入ります。</p>
+    <div id="fixedList"></div>
+    <button class="btn ghost sm" id="addFixed" style="margin-top:10px">＋ 固定費を追加</button>
+    <p class="hint" id="fixedSum"></p>
+    <div class="row" style="margin-top:12px;align-items:flex-end">
+      <div><label>過去の月にも入れる（この月から）</label><input type="month" id="fixedFrom"></div>
+      <button class="btn ghost" id="fixedFromBtn" style="flex:0 0 auto;min-width:0">入れる</button>
+    </div>
+    <p class="hint">追加したときに開いていた月から反映します。金額を変えると今月以降の分だけ変わり、過去の月はそのままです。この欄から消しても、すでに入った月の記録は残ります。その月だけ不要なときは「入力」タブの一覧から消してください（また入ることはありません）。</p>
+  </div>
+  <div class="card">
+    <h2>カテゴリ別の目安（％か金額で入力）</h2>
+    <div class="gl" id="guide"></div>
+    <p class="hint">％か金額のどちらかを入れると、もう一方は手取りから自動で計算します。手取りを変えると、％はそのままで金額が計算し直されます。</p>
+    <p class="hint">初期値は一般的な目安です。家族構成や住まいに合わせて調整してください。合計が85％なら、残り15％が貯蓄の目標になります。</p>
+    <p class="hint" id="guideSum"></p>
+    <button class="btn ghost sm" id="resetGuide" style="margin-top:6px">目安を初期値に戻す</button>
+  </div>
+  <div class="card">
+    <h2>データの保存・移行</h2>
+    <p class="hint" style="margin-top:0">データはこのブラウザの中だけに保存されます。ブラウザのデータ消去で消えるため、ときどきバックアップを。</p>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost" id="exportJson">バックアップ保存</button>
+      <button class="btn ghost" id="exportCsv">CSV出力</button>
+    </div>
+    <div style="margin-top:10px"><label>バックアップから復元</label><input type="file" id="importJson" accept=".json,application/json"></div>
+    <button class="btn ghost sm" id="wipe" style="margin-top:12px;border-color:var(--bad);color:var(--bad)">全データ削除</button>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='kakei-note-v1';
+const CATS=['住居','食費','外食','日用品','水道光熱','通信','保険','交通・車','医療','教育','被服・美容','趣味・娯楽','交際費','サブスク','その他'];
+const DEF_GUIDE={'住居':25,'食費':14,'外食':4,'日用品':3,'水道光熱':6,'通信':5,'保険':5,'交通・車':5,'医療':2,'教育':5,'被服・美容':3,'趣味・娯楽':3,'交際費':2,'サブスク':1,'その他':2};
+const FIXED_CATS=new Set(['住居','水道光熱','通信','保険','サブスク']);
+const KW=[
+ ['交際費',['飲み会','プレゼント','ご祝儀','お祝い','香典','交際','手土産']],
+ ['サブスク',['netflix','ネトフリ','プライム','spotify','youtube','disney','ディズニー+','u-next','サブスク','月額','chatgpt','claude','adobe','icloud','google one','apple music','dazn','hulu','audible','kindle unlimited']],
+ ['住居',['家賃','管理費','住宅ローン','共益費','更新料']],
+ ['水道光熱',['電気','ガス','水道','光熱']],
+ ['通信',['携帯','スマホ','通信','ネット','wi-fi','wifi','光回線','ドコモ','docomo','ソフトバンク','楽天モバイル','ahamo','povo','ワイモバイル','uq']],
+ ['保険',['保険','共済']],
+ ['外食',['外食','ランチ','カフェ','スタバ','ドトール','タリーズ','マック','マクド','居酒屋','ラーメン','寿司','焼肉','デリバリー','uber','出前','ファミレス','喫茶']],
+ ['食費',['スーパー','食材','食費','米','肉','野菜','コンビニ','セブン','ローソン','ファミマ','パン','弁当','業務スーパー','生協','コープ']],
+ ['日用品',['日用品','ドラッグ','洗剤','ティッシュ','トイレット','ダイソー','100均','セリア','シャンプー','マツキヨ']],
+ ['交通・車',['電車','バス','タクシー','ガソリン','駐車','高速','車検','suica','pasmo','定期','カーシェア','自動車']],
+ ['医療',['病院','薬','歯医者','歯科','クリニック','診察','処方']],
+ ['教育',['塾','習い事','学費','給食','教材','学校','月謝','受験']],
+ ['被服・美容',['服','ユニクロ','gu','靴','美容','化粧','コスメ','カット','美容院','ネイル','zara']],
+ ['趣味・娯楽',['ゲーム','映画','本','書籍','漫画','旅行','趣味','ガチャ','課金','ライブ','チケット','カラオケ','amazon','楽天']]
+];
+const INVEST_KW=['講座','セミナー','書籍','本','勉強','資格','研修','スクール'];
+const TIPS={
+ '住居':'更新時の家賃交渉、住宅ローンなら借り換えシミュレーションを。一度下がれば毎月効く最大の固定費です。',
+ '食費':'買い物は週2回までに絞り、献立を先に決めてから買うと「ついで買い」が減ります。',
+ '外食':'回数に上限を決めましょう（例：週2回まで）。ランチは持参の日を作るだけで大きく変わります。',
+ '日用品':'買う店とポイントデーを1つに集約。ストックは「1つ使い始めたら1つ買う」ルールで。',
+ '水道光熱':'電力・ガスのプランを比較サイトで確認。契約アンペアの見直しも効果があります。',
+ '通信':'格安プランや格安SIMへの切替で、1回線あたり月数千円下がる余地があります。',
+ '保険':'保障の重複がないか確認を。必要保障額から逆算すると、入りすぎに気づけます。',
+ '交通・車':'車は維持費（駐車場・保険・車検・税）を年額で計算し、カーシェアと比べてみましょう。',
+ '医療':'家族分を合算して年10万円（または所得の5％）を超えそうなら、医療費控除の対象になる可能性があります。',
+ '教育':'優先度の高い費目です。削るより、他の費目を下げて守る考え方がおすすめです。',
+ '被服・美容':'買う前に「手持ちで代用できないか」を一度考えるだけで、衝動買いが減ります。',
+ '趣味・娯楽':'月の予算を先に決めて別財布（別口座・プリペイド）に分けると管理しやすくなります。',
+ '交際費':'参加する・しないの基準を自分で決めておくと、断るストレスも出費も減ります。',
+ 'サブスク':'直近1ヶ月で使っていないものは解約候補。必要になったら再契約すれば十分です。',
+ 'その他':'「その他」が多い＝使い道が見えていない状態。項目名を具体的にして記録しましょう。'
+};
+const CHARA_SAY={
+ normal:['まずは今月の出費を見せてくださいね。','今月の記録はまだのようですね？','出費を入れていただければ、一緒に確認しますよ。'],
+ noIncome:['手取りも教えていただけますか？','「設定」で手取りを入れると、もっと詳しく見られますよ。'],
+ sad:['今月は少し苦しいですね…一緒に見直しましょう。','はぁ…出費が重たいようです。ひとつずつ確認しましょう。','落ち込まなくて大丈夫。ここから立て直しましょう。'],
+ proud:['お見事です！この調子でいきましょう。','素晴らしい！しっかり貯められていますね。','いい結果です！自信を持ってくださいね。'],
+ happy:['なかなか良いペースですよ。','ふふ、順調ですね。この調子で。','よく管理できていますね。あと一歩です。'],
+ warn:['ここ、少し見直せるかもしれません。','ちょっと、ここを見てもらえますか？','もう少しだけ、貯める余地がありそうですよ。']
+};
+
+const $=s=>document.querySelector(s);
+const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
+const pct=(a,b)=>b>0?(a/b*100):0;
+const fmtPct=n=>String(Math.round(n*10)/10);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('on'),1800)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function load(){try{const s=localStorage.getItem(KEY);if(s)return JSON.parse(s)}catch(e){}return null}
+let state=load()||{income:0,guide:{...DEF_GUIDE},items:[],biz:{},fixedCosts:[]};
+state.guide={...DEF_GUIDE,...(state.guide||{})};
+// 区分（book）が入る前のデータはすべて「一般」として扱う
+const withBook=i=>({...i,book:i.book==='仕事'?'仕事':'一般'});
+state.items=(state.items||[]).map(withBook);
+// お店の売上と経費（月ごと）。入る前のデータは空から始める
+state.biz=state.biz||{};
+// 毎月の固定費。入る前のデータは空から始める
+state.fixedCosts=(state.fixedCosts||[]).filter(f=>f.name||f.amount);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした（ブラウザの設定を確認）')}}
+
+const now=new Date();
+let month=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+let curBook='一般',listFilter='すべて';
+function shiftMonth(m,d){let [y,mm]=m.split('-').map(Number);mm+=d;while(mm<1){mm+=12;y--}while(mm>12){mm-=12;y++}return y+'-'+String(mm).padStart(2,'0')}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+// 「本」は書籍のキーワードなので、店名によくある語で誤判定しないよう先に除く
+const kwName=name=>name.replace(/本店|本社|本舗|本部|日本/g,'');
+function guessCat(name){const n=kwName(name).toLowerCase();for(const [c,ws] of KW){if(ws.some(w=>n.includes(w.toLowerCase())))return c}return 'その他'}
+function guessType(name){const n=kwName(name);return INVEST_KW.some(w=>n.includes(w))?'投資':'消費'}
+function normNum(s){return s.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[，]/g,',')}
+
+function parseLine(line){
+  let s=normNum(line.trim());if(!s)return null;
+  s=s.replace(/(\d),(?=\d{3}(\D|$))/g,'$1');
+  let cat=null;
+  for(const c of CATS){if(s.startsWith(c)){const rest=s.slice(c.length);if(/^[\s:：,、\t】\]]/.test(rest)||rest===''){cat=c;s=rest.replace(/^[\s:：,、\t】\]]+/,'');break}}}
+  s=s.replace(/^[【\[]/,'');
+  const nums=[...s.matchAll(/\d+(\.\d+)?/g)];if(!nums.length)return null;
+  const m=nums[nums.length-1];const amount=Math.round(parseFloat(m[0]));
+  let name=(s.slice(0,m.index)+s.slice(m.index+m[0].length)).replace(/[¥￥円]/g,'').replace(/[,\t:：、]+/g,' ').replace(/\s+/g,' ').trim()||'（無題）';
+  if(!amount)return null;
+  const c=cat||guessCat(name);
+  return {id:uid(),month,name,amount,cat:c,type:guessType(name),fixed:FIXED_CATS.has(c),book:curBook};
+}
+
+function monthItems(m){return state.items.filter(i=>i.month===m)}
+
+// ---------- 入力タブ ----------
+$('#fCat').innerHTML=CATS.map(c=>`<option>${c}</option>`).join('');
+$('#book').addEventListener('click',e=>{
+  const b=e.target.dataset.book;if(!b)return;
+  curBook=b;
+  $('#book').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===e.target));
+  $('#bulkAdd').textContent=`${b}に取り込む`;$('#addOne').textContent=`${b}に追加`;
+});
+$('#listFilter').addEventListener('click',e=>{
+  const f=e.target.dataset.filter;if(!f)return;
+  listFilter=f;
+  $('#listFilter').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===e.target));
+  renderItems();
+});
+$('#fName').addEventListener('input',e=>{const c=guessCat(e.target.value);$('#fCat').value=c;$('#fFixed').checked=FIXED_CATS.has(c);$('#fType').value=guessType(e.target.value)});
+$('#addOne').onclick=()=>{
+  const name=$('#fName').value.trim();const amount=Math.round(parseFloat(normNum($('#fAmt').value).replace(/[,円¥]/g,'')));
+  if(!name||!amount){toast('項目と金額を入れてください');return}
+  state.items.push({id:uid(),month,name,amount,cat:$('#fCat').value,type:$('#fType').value,fixed:$('#fFixed').checked,book:curBook});
+  save();$('#fName').value='';$('#fAmt').value='';$('#fFixed').checked=false;renderAll();toast(`${curBook}に追加しました`);
+};
+$('#bulkAdd').onclick=()=>{
+  const lines=$('#bulk').value.split(/\r?\n/);let n=0,skip=0;
+  for(const l of lines){if(!l.trim())continue;const it=parseLine(l);if(it){state.items.push(it);n++}else skip++}
+  save();renderAll();$('#bulk').value='';toast(`${curBook}に${n}件取り込みました`+(skip?`（${skip}行は金額が読めず除外）`:''));
+};
+$('#copyFixed').onclick=()=>{
+  const prev=monthItems(shiftMonth(month,-1)).filter(i=>i.fixed);
+  if(!prev.length){toast('前月に固定費がありません');return}
+  const cur=monthItems(month);let n=0;
+  for(const p of prev){if(cur.some(c=>c.fixed&&c.name===p.name&&c.book===p.book))continue;const {date,fixedId,...rest}=p;state.items.push({...rest,id:uid(),month});n++}
+  save();renderAll();toast(`${n}件コピーしました`);
+};
+
+// ---------- カード明細CSV ----------
+const CSV_COLS={date:/利用日/,name:/利用店|店名|商品名|摘要/,amount:/利用金額/};
+let csvRows=null;
+function decodeCsv(buf){
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(buf)}
+  catch(e){return new TextDecoder('shift_jis').decode(buf)}
+}
+function parseCsv(t){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(q){if(c!=='"')f+=c;else if(t[i+1]==='"'){f+='"';i++}else q=false}
+    else if(c==='"')q=true;
+    else if(c===','){row.push(f);f=''}
+    else if(c==='\n'){row.push(f.replace(/\r$/,''));rows.push(row);row=[];f=''}
+    else f+=c;
+  }
+  if(f||row.length){row.push(f.replace(/\r$/,''));rows.push(row)}
+  return rows;
+}
+function parseCsvDate(s){
+  const m=s.normalize('NFKC').match(/(\d{2,4})\D(\d{1,2})\D(\d{1,2})/);if(!m)return null;
+  const y=+m[1]<100?2000+ +m[1]:+m[1],mo=+m[2],d=+m[3];
+  if(mo<1||mo>12||d<1||d>31)return null;
+  return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+function readCardCsv(text){
+  const rows=parseCsv(text);let col=null,head=0;
+  for(;head<Math.min(rows.length,10);head++){
+    const c={};for(const k in CSV_COLS)c[k]=rows[head].findIndex(v=>CSV_COLS[k].test(v));
+    if(c.date>=0&&c.name>=0&&c.amount>=0){col=c;break}
+  }
+  if(!col)return null;
+  const out=[];let skipped=0;
+  for(const r of rows.slice(head+1)){
+    if(!r.join('').trim())continue;
+    const date=parseCsvDate(r[col.date]||'');
+    const name=(r[col.name]||'').normalize('NFKC').replace(/\s+/g,' ').trim();
+    const amount=Math.round(Number((r[col.amount]||'').normalize('NFKC').replace(/[,円¥\s]/g,'')));
+    if(!date||!name||!amount){skipped++;continue}
+    out.push({date,name,amount});
+  }
+  return {rows:out,skipped};
+}
+// 過去に同じ店名をどう仕分けたかを引き継ぎ、取り込み済みの行は外しておく
+function buildCsvRows(rows){
+  const learned=new Map();state.items.forEach(i=>learned.set(i.name,i));
+  const seen=new Map();const bump=k=>seen.set(k,(seen.get(k)||0)+1);
+  state.items.forEach(i=>bump(`${i.date||i.month}|${i.name}|${i.amount}`));
+  const take=k=>{if(!seen.get(k))return false;seen.set(k,seen.get(k)-1);return true};
+  return rows.map(r=>{
+    const month=r.date.slice(0,7),past=learned.get(r.name);
+    const dup=take(`${r.date}|${r.name}|${r.amount}`)||take(`${month}|${r.name}|${r.amount}`);
+    const cat=past?past.cat:guessCat(r.name);
+    return {...r,month,cat,type:past?past.type:guessType(r.name),fixed:past?past.fixed:FIXED_CATS.has(cat),book:past?past.book:curBook,known:!!past,dup,on:!dup,touched:false};
+  });
+}
+function renderCsvPreview(skipped){
+  $('#csvPreview').classList.toggle('hide',!csvRows);
+  if(!csvRows)return;
+  if(skipped!==undefined)renderCsvPreview.skipped=skipped;
+  const on=csvRows.filter(r=>r.on);
+  const sum=rs=>rs.reduce((s,r)=>s+r.amount,0);
+  $('#csvSum').textContent=`${on.length}件・${yen(sum(on))}（一般 ${yen(sum(on.filter(r=>r.book==='一般')))}／仕事 ${yen(sum(on.filter(r=>r.book==='仕事')))}）`;
+  const news=csvRows.filter(r=>!r.known&&!r.dup).length,dups=csvRows.filter(r=>r.dup).length,sk=renderCsvPreview.skipped;
+  $('#csvNote').textContent=[news?`「初めて」の${news}件は入力先の区分で仮に入れています。「一般／仕事」をタップして確認してください。同じ店名の行もまとめて変わります。`:'',dups?`取り込み済みらしい${dups}件はチェックを外しています。`:'',sk?`日付・店名・金額が読めない${sk}行は除きました。`:''].filter(Boolean).join('');
+  $('#csvRows').innerHTML=csvRows.map((r,i)=>`<li class="${r.on?'':'off'}">
+    <input type="checkbox" data-csv-on="${i}" aria-label="取り込む"${r.on?' checked':''}>
+    <div class="nm"><b>${esc(r.name)}</b><small>${r.date.replace(/-/g,'/')}
+      <select data-csv-cat="${i}" style="width:auto;padding:1px 4px;font-size:12px;border-radius:6px">${CATS.map(c=>`<option${c===r.cat?' selected':''}>${c}</option>`).join('')}</select>
+      <span class="chip ${r.book}" data-csv-book="${i}">${r.book}</span>
+      ${r.dup?'<span class="tag dup">取り込み済み？</span>':r.known?'':'<span class="tag">初めて</span>'}</small></div>
+    <span class="amt">${yen(r.amount)}</span></li>`).join('');
+  $('#csvOk').textContent=`${on.length}件を取り込む`;$('#csvOk').disabled=!on.length;
+}
+$('#csvFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const res=readCardCsv(decodeCsv(await f.arrayBuffer()));
+  if(!res){toast('読み取れないCSVです（利用日・店名・利用金額の列が必要です）');return}
+  if(!res.rows.length){toast('取り込める明細がありませんでした');return}
+  csvRows=buildCsvRows(res.rows);renderCsvPreview(res.skipped);
+};
+function setCsvRow(i,fields){
+  const r=csvRows[i];Object.assign(r,fields);r.touched=true;
+  csvRows.forEach(o=>{if(o!==r&&o.name===r.name&&!o.touched)Object.assign(o,fields)});
+  renderCsvPreview();
+}
+$('#csvRows').addEventListener('click',e=>{
+  const i=e.target.dataset.csvBook;if(i===undefined)return;
+  setCsvRow(+i,{book:csvRows[+i].book==='仕事'?'一般':'仕事'});
+});
+$('#csvRows').addEventListener('change',e=>{
+  const {csvOn,csvCat}=e.target.dataset;
+  if(csvOn!==undefined){csvRows[+csvOn].on=e.target.checked;renderCsvPreview()}
+  else if(csvCat!==undefined)setCsvRow(+csvCat,{cat:e.target.value,fixed:FIXED_CATS.has(e.target.value)});
+});
+$('#csvCancel').onclick=()=>{csvRows=null;renderCsvPreview()};
+$('#csvOk').onclick=()=>{
+  const on=csvRows.filter(r=>r.on);if(!on.length)return;
+  state.items.push(...on.map(r=>({id:uid(),month:r.month,name:r.name,amount:r.amount,cat:r.cat,type:r.type,fixed:r.fixed,book:r.book,date:r.date})));
+  // 件数の一番多い月を開く（明細には利用月の違う行が混ざる）
+  const count={};on.forEach(r=>count[r.month]=(count[r.month]||0)+1);
+  month=Object.keys(count).sort((a,b)=>count[b]-count[a])[0];
+  csvRows=null;save();renderAll();renderCsvPreview();
+  toast(`${on.length}件取り込みました（${Object.keys(count).sort().map(m=>`${m}：${count[m]}件`).join('、')}）`);
+};
+
+// ---------- 毎月の固定費 ----------
+const thisMonth=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+// 開始月から今月までで、まだ入れていない月に明細を作る。done に記録するので、一覧から消した月には戻らない
+function applyFixedCosts(){
+  const end=thisMonth();let changed=false;
+  for(const f of state.fixedCosts){
+    if(!f.name||!f.amount)continue;
+    for(let m=f.from;m<=end;m=shiftMonth(m,1)){
+      if(f.done.includes(m))continue;
+      f.done.push(m);changed=true;
+      // 同じ名前を手で入れてあれば、二重にせずその明細を固定費として扱う
+      const same=state.items.find(i=>i.month===m&&i.book==='一般'&&i.name===f.name&&!state.fixedCosts.some(x=>x.id===i.fixedId));
+      if(same){same.fixedId=f.id;same.fixed=true}
+      else state.items.push({id:uid(),month:m,name:f.name,amount:f.amount,cat:f.cat,type:'消費',fixed:true,book:'一般',fixedId:f.id});
+    }
+  }
+  if(changed)save();
+}
+function renderFixed(){
+  const list=$('#fixedList'),ids=state.fixedCosts.map(f=>f.id).join();
+  // 作り直すと次の欄へのフォーカスが外れるので、行が増減したときだけ作り直す
+  if(list.dataset.ids!==ids){
+    list.dataset.ids=ids;
+    list.innerHTML=state.fixedCosts.map(f=>`<div class="fx-row">
+      <input data-fc-name="${f.id}" placeholder="品目（例：家賃）" aria-label="固定費の品目">
+      <input data-fc-amount="${f.id}" inputmode="numeric" placeholder="金額" aria-label="固定費の金額（円）">
+      <button class="icon fx-del" data-fc-del="${f.id}" aria-label="この固定費を消す">×</button>
+      <select data-fc-cat="${f.id}" style="padding:4px 8px;font-size:13px" aria-label="固定費のカテゴリ">${CATS.map(c=>`<option>${c}</option>`).join('')}</select>
+    </div>`).join('');
+  }
+  for(const f of state.fixedCosts){
+    $(`[data-fc-name="${f.id}"]`).value=f.name;
+    $(`[data-fc-amount="${f.id}"]`).value=f.amount?f.amount.toLocaleString('ja-JP'):'';
+    $(`[data-fc-cat="${f.id}"]`).value=f.cat;
+  }
+  const ready=state.fixedCosts.filter(f=>f.name&&f.amount),sum=ready.reduce((s,f)=>s+f.amount,0),inc=state.income||0;
+  $('#fixedSum').textContent=ready.length?`毎月の固定費：${ready.length}件・合計 ${yen(sum)}${inc?`（手取りの${pct(sum,inc).toFixed(1)}％）`:''}`:'';
+}
+$('#fixedFrom').value=thisMonth().slice(0,4)+'-01';
+// 登録済みの固定費の開始月を早めるだけ。実際の追加は applyFixedCosts が行うので、入った月や消した月には重ならない
+$('#fixedFromBtn').onclick=()=>{
+  const start=$('#fixedFrom').value,end=thisMonth(),ready=state.fixedCosts.filter(f=>f.name&&f.amount);
+  if(!start){toast('開始する月を選んでください');return}
+  if(!ready.length){toast('先に固定費を入れてください');return}
+  if(start>end){toast('今月より先の月は選べません');return}
+  if(!confirm(`${start}から今月までのまだ入っていない月に、固定費${ready.length}件を今の金額で入れます。同じ名前の明細がある月は増やしません。よろしいですか？`))return;
+  const before=state.items.length;
+  ready.forEach(f=>{if(start<f.from)f.from=start});
+  save();renderAll();
+  const n=state.items.length-before;
+  toast(n?`のべ${n}件入れました`:'入れる分はありませんでした');
+};
+$('#addFixed').onclick=()=>{
+  const now=thisMonth();
+  state.fixedCosts.push({id:uid(),name:'',amount:0,cat:'その他',from:month<now?month:now,done:[]});
+  renderFixed();
+  $(`[data-fc-name="${state.fixedCosts[state.fixedCosts.length-1].id}"]`).focus();
+};
+$('#fixedList').addEventListener('change',e=>{
+  const {fcName,fcAmount,fcCat}=e.target.dataset,id=fcName||fcAmount||fcCat;
+  const f=state.fixedCosts.find(x=>x.id===id);if(!f)return;
+  if(fcName){f.name=e.target.value.trim();if(f.cat==='その他')f.cat=guessCat(f.name)}
+  else if(fcAmount)f.amount=Math.max(0,Math.round(parseFloat(normNum(e.target.value).replace(/[,円¥￥]/g,'')))||0);
+  else f.cat=e.target.value;
+  // 入れた内容を今月以降の明細にも反映する（過去の月はその時の金額のまま）
+  const now=thisMonth();
+  if(f.name&&f.amount)state.items.filter(i=>i.fixedId===f.id&&i.month>=now).forEach(i=>{i.name=f.name;i.amount=f.amount;i.cat=f.cat});
+  save();renderAll();
+});
+$('#fixedList').addEventListener('click',e=>{
+  const id=e.target.dataset.fcDel;if(!id)return;
+  state.fixedCosts=state.fixedCosts.filter(f=>f.id!==id);
+  save();renderAll();
+});
+
+function renderItems(){
+  const all=monthItems(month);
+  const sumOf=b=>all.filter(i=>i.book===b).reduce((s,i)=>s+i.amount,0);
+  const tot=all.reduce((s,i)=>s+i.amount,0);
+  $('#cnt').textContent=all.length?`${all.length}件・${yen(tot)}`:'';
+  $('#bookSum').textContent=`一般 ${yen(sumOf('一般'))}／仕事 ${yen(sumOf('仕事'))}／合計 ${yen(tot)}`;
+  const its=all.filter(i=>listFilter==='すべて'||i.book===listFilter).sort((a,b)=>b.amount-a.amount);
+  if(!its.length){$('#items').innerHTML='<li class="empty">まだ記録がありません</li>';return}
+  $('#items').innerHTML=its.map(i=>`<li>
+    <div class="nm"><b>${esc(i.name)}</b><small>
+      <select data-cat="${i.id}" style="width:auto;padding:1px 4px;font-size:12px;border-radius:6px">${CATS.map(c=>`<option${c===i.cat?' selected':''}>${c}</option>`).join('')}</select>
+      <span class="chip fx" data-fx="${i.id}" style="opacity:${i.fixed?1:.45}">固</span>
+      <span class="chip ${i.book}" data-book-of="${i.id}">${i.book}</span></small></div>
+    <span class="chip ${i.type}" data-type="${i.id}">${i.type}</span>
+    <span class="amt">${yen(i.amount)}</span>
+    <button class="icon" data-del="${i.id}" aria-label="削除">×</button></li>`).join('');
+}
+$('#items').addEventListener('click',e=>{
+  const t=e.target;const find=id=>state.items.find(x=>x.id===id);
+  if(t.dataset.type){const it=find(t.dataset.type);it.type={'消費':'浪費','浪費':'投資','投資':'消費'}[it.type];save();renderAll()}
+  else if(t.dataset.fx){const it=find(t.dataset.fx);it.fixed=!it.fixed;save();renderAll()}
+  else if(t.dataset.bookOf){const it=find(t.dataset.bookOf);it.book=it.book==='仕事'?'一般':'仕事';save();renderAll()}
+  else if(t.dataset.del){state.items=state.items.filter(x=>x.id!==t.dataset.del);save();renderAll()}
+});
+$('#items').addEventListener('change',e=>{const id=e.target.dataset.cat;if(!id)return;const it=state.items.find(x=>x.id===id);it.cat=e.target.value;save();renderAll()});
+
+// ---------- 分析 ----------
+function stats(m,book){
+  const its=monthItems(m).filter(i=>!book||i.book===book);const total=its.reduce((s,i)=>s+i.amount,0);
+  const byCat={};CATS.forEach(c=>byCat[c]=0);its.forEach(i=>byCat[i.cat]=(byCat[i.cat]||0)+i.amount);
+  const byType={'消費':0,'浪費':0,'投資':0};its.forEach(i=>byType[i.type]+=i.amount);
+  const fixed=its.filter(i=>i.fixed).reduce((s,i)=>s+i.amount,0);
+  return {its,total,byCat,byType,fixed};
+}
+
+function buildAdvice(st,prev){
+  const A=[];const inc=state.income||0;const {its,total,byCat,byType,fixed}=st;
+  if(!its.length)return [{lv:'',t:'まずは記録から',b:'支出を入力すると、ここに見直しポイントが出ます。'}];
+  if(!inc)A.push({lv:'warn',t:'手取り月収を設定してください',b:'「設定」で手取りを入れると、目安との比較と貯蓄率の判定ができるようになります。'});
+  // 削減ポテンシャル
+  let over=[];
+  if(inc){
+    for(const c of CATS){const g=state.guide[c]||0;const lim=Math.round(inc*g/100);if(byCat[c]>lim&&byCat[c]>0)over.push({c,ex:byCat[c]-lim,amt:byCat[c],g})}
+    over.sort((a,b)=>b.ex-a.ex);
+    const rate=(inc-total)/inc;
+    if(rate<0)A.push({lv:'bad',t:`今月は赤字です（${yen(total-inc)}の超過）`,b:'まずは支出を手取り以内に収めることが最優先。下の「目安超え」の費目から手をつけましょう。'});
+    else if(rate<0.1)A.push({lv:'warn',t:`貯蓄率 ${(rate*100).toFixed(1)}％ — もう一歩`,b:`目標は手取りの15〜20％。給料日に${yen(inc*0.1)}（10％）を別口座へ自動で移す「先取り貯蓄」から始めるのがおすすめです。`});
+    else if(rate>=0.2)A.push({lv:'good',t:`貯蓄率 ${(rate*100).toFixed(1)}％ — 良いペースです`,b:'この水準を保てれば十分健全です。浪費を減らした分を、目的別の貯蓄に回しましょう。'});
+    else A.push({lv:'good',t:`貯蓄率 ${(rate*100).toFixed(1)}％ — 合格ライン`,b:'20％を目指すなら、固定費をもう一段下げるのが近道です。'});
+    const pot=over.reduce((s,o)=>s+o.ex,0);
+    if(pot>0)A.push({lv:'warn',t:`目安まで下げると 月${yen(pot)}／年${yen(pot*12)} の改善余地`,b:'目安を超えている費目の合計です。全部でなくても、上位1〜2費目だけで効果は大きく出ます。'});
+  }
+  // 固定費
+  if(total>0&&fixed/total>0.5)A.push({lv:'warn',t:`固定費が支出の${pct(fixed,total).toFixed(0)}％`,b:'節約は固定費から、が鉄則です。一度見直せば我慢なしで毎月効きます。通信・保険・サブスクの順に確認を。'});
+  // 目安超え費目
+  over.slice(0,3).forEach(o=>A.push({lv:'warn',t:`${o.c}：${yen(o.amt)}（手取りの${pct(o.amt,inc).toFixed(1)}％／目安${fmtPct(o.g)}％）`,b:`目安まで下げると月${yen(o.ex)}、年${yen(o.ex*12)}。${TIPS[o.c]}`}));
+  // 浪費
+  const waste=its.filter(i=>i.type==='浪費').sort((a,b)=>b.amount-a.amount);
+  if(!waste.length)A.push({lv:'',t:'「浪費」の仕分けをしてみましょう',b:'入力タブで分類チップをタップすると、消費→浪費→投資と切り替わります。「払って後悔したもの」が浪費です。仕分けるだけで翌月の出費が変わります。'});
+  else{
+    const ws=waste.reduce((s,i)=>s+i.amount,0);const base=inc||total;
+    const r=pct(ws,base);
+    if(r>5)A.push({lv:'bad',t:`浪費が${inc?'手取り':'支出'}の${r.toFixed(1)}％（目安5％以内）`,b:`大きいもの：${waste.slice(0,3).map(i=>`${esc(i.name)} ${yen(i.amount)}`).join('、')}。同じ場面が来たときの「代わりの行動」を1つ決めておくのが効果的です。`});
+    else A.push({lv:'good',t:`浪費は${r.toFixed(1)}％で目安内`,b:'楽しみのための出費まで削る必要はありません。この範囲なら健全です。'});
+  }
+  // サブスク
+  const subs=its.filter(i=>i.cat==='サブスク');const subT=subs.reduce((s,i)=>s+i.amount,0);
+  if(subs.length>=3||subT>=3000)A.push({lv:'warn',t:`サブスク${subs.length}件・月${yen(subT)}（年${yen(subT*12)}）`,b:`${subs.map(i=>esc(i.name)).join('、')}。直近1ヶ月で使っていないものは解約候補です。`});
+  // ラテマネー
+  const small=its.filter(i=>i.amount<1500&&['外食','食費','趣味・娯楽','日用品'].includes(i.cat));
+  if(small.length>=8){const s=small.reduce((a,i)=>a+i.amount,0);A.push({lv:'warn',t:`1,500円未満の細かい出費が${small.length}回・計${yen(s)}`,b:`コンビニやカフェの「ちょっと」の積み重ねです。年間にすると約${yen(s*12)}。回数を半分にするだけで年${yen(s*6)}浮きます。`})}
+  // その他
+  if(total>0&&byCat['その他']/total>0.1)A.push({lv:'warn',t:`「その他」が${pct(byCat['その他'],total).toFixed(0)}％`,b:TIPS['その他']});
+  // 前月比
+  if(prev.total>0&&total>prev.total*1.1){
+    const ups=CATS.map(c=>({c,d:byCat[c]-prev.byCat[c]})).filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,3);
+    A.push({lv:'warn',t:`前月より${yen(total-prev.total)}増加（+${pct(total-prev.total,prev.total).toFixed(0)}％）`,b:`増えた費目：${ups.map(u=>`${u.c} +${yen(u.d)}`).join('、')}。一時的な出費か、習慣化しつつあるかを見分けましょう。`});
+  }
+  return A;
+}
+
+function charaFace(st){
+  const inc=state.income||0;
+  if(!st.its.length||!inc)return 'normal';
+  if(st.total>inc||pct(st.byType['浪費'],inc)>5)return 'sad';
+  const rate=(inc-st.total)/inc;
+  if(rate>=0.2)return 'proud';
+  if(rate>=0.15)return 'happy';
+  return 'warn';
+}
+// ひと言は月ごとに固定（開くたびに変わらないよう、月の文字列から決める）
+function charaSay(key,m){
+  const list=CHARA_SAY[key];
+  return list[[...m].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0)%list.length];
+}
+function renderChara(st){
+  const face=charaFace(st);
+  // 記録はあるのに手取りだけ未設定のときは、出費を促さず手取りの入力を案内する
+  const say=charaSay(face==='normal'&&st.its.length?'noIncome':face,month);
+  $('#chara').innerHTML=`<img src="images/chara/app/${face}.png" alt="" onerror="this.remove()"><div class="say">${say}</div>`;
+}
+
+// ---------- お店（売上と経費は手入力。明細からは足さない） ----------
+function bizCalc(m){
+  const b=state.biz[m]||{},sales=+b.sales||0,expense=+b.expense||0,living=stats(m,'一般').total;
+  return {sales,expense,living,entered:sales>0||expense>0,profit:sales-expense,total:expense+living,rest:sales-expense-living};
+}
+function renderBiz(){
+  const b=bizCalc(month),worked=stats(month,'仕事').total;
+  $('#bizMonth').textContent=month;
+  $('#bizSales').value=b.sales?b.sales.toLocaleString('ja-JP'):'';
+  $('#bizExpense').value=b.expense?b.expense.toLocaleString('ja-JP'):'';
+  $('#bizResult').textContent=b.entered?`お店の利益 ${yen(b.profit)}／生活費（一般 ${yen(b.living)}）を引いて残った額 ${yen(b.rest)}`:'売上と経費を入れると、お店の利益と残った額を計算します。';
+  const note=worked?`「仕事」に仕分けた明細 ${yen(worked)} は、経費に自動では足していません。`:'';
+  $('#bizNote').textContent=note;
+  const inc=state.income||0;
+  const hero=(label,v,sub,rows)=>`<div><div class="hero-label">${label}</div><div class="hero-num${v<0?' neg':''}">${yen(v)}</div><p class="hint">${v<0?'マイナスです。':''}${sub}</p></div>`
+    +(rows?`<dl class="flow">${rows.map(([k,n,c])=>`<div class="${c||''}"><dt>${k}</dt><dd>${yen(n)}</dd></div>`).join('')}</dl>`:'');
+  // 売上があれば売上から、なければ手取りから、どちらもなければ生活費だけを見せる
+  const mLabel=`${+month.slice(5)}月`;
+  $('#summary').innerHTML=(b.entered?hero(`${mLabel}の残った額`,b.rest,`支出合計（経費＋生活費）は ${yen(b.total)} です。`,[['売上',b.sales],['− 経費',b.expense],['お店の利益',b.profit,'sub'],['− 生活費',b.living],['残った額',b.rest,'sub']])
+    :inc?hero(`${mLabel}の残り（手取りから）`,inc-b.living,'「入力」タブで売上と経費を入れると、お店を含めて計算します。',[['手取り',inc],['− 生活費',b.living],['残り',inc-b.living,'sub']])
+    :hero(`${mLabel}の生活費`,b.living,'「設定」で手取りを入れると、残りを計算します。'))
+    +(note?`<p class="hint note">${note}</p>`:'');
+}
+function setBiz(field,v){
+  const b={...(state.biz[month]||{}),[field]:Math.max(0,Math.round(parseFloat(normNum(v).replace(/[,円¥￥]/g,'')))||0)};
+  if(b.sales||b.expense)state.biz[month]=b;else delete state.biz[month];
+  save();renderAll();
+}
+$('#bizSales').addEventListener('change',e=>setBiz('sales',e.target.value));
+$('#bizExpense').addEventListener('change',e=>setBiz('expense',e.target.value));
+
+function renderAnalysis(){
+  const st=stats(month,'一般'),prev=stats(shiftMonth(month,-1),'一般');const inc=state.income||0;
+  renderChara(st);
+  const rest=inc-st.total;
+  $('#kpis').innerHTML=`
+    <div class="kpi"><span>生活費</span><b>${yen(st.total)}</b></div>
+    <div class="kpi"><span>手取り</span><b>${inc?yen(inc):'未設定'}</b></div>
+    <div class="kpi"><span>手取りの残り</span><b style="color:${rest<0?'var(--bad)':'inherit'}">${inc?yen(rest):'—'}</b></div>
+    <div class="kpi"><span>貯蓄率</span><b>${inc?(rest/inc*100).toFixed(1)+'％':'—'}</b></div>
+    <div class="kpi"><span>固定費</span><b>${yen(st.fixed)}</b></div>
+    <div class="kpi"><span>前月比</span><b>${prev.total?((st.total>=prev.total?'+':'')+yen(st.total-prev.total)):'—'}</b></div>`;
+  const adv=buildAdvice(st,prev),advSorted=[...adv.filter(a=>a.lv==='bad'),...adv.filter(a=>a.lv!=='bad')];
+  const advHtml=list=>list.map(a=>`<div class="adv ${a.lv}"><b>${a.t}</b><p>${a.b}</p></div>`).join('');
+  $('#advice').innerHTML=advHtml(advSorted.slice(0,3))+(advSorted.length>3?`<details class="more"><summary>ほかのアドバイスを見る（${advSorted.length-3}件）</summary>${advHtml(advSorted.slice(3))}</details>`:'');
+  // types
+  const base=inc&&inc>=st.total?inc:st.total;const sav=inc&&inc>st.total?inc-st.total:0;
+  const col={'消費':'var(--sub)','浪費':'var(--bad)','投資':'var(--accent)','貯蓄':'var(--bar)'};
+  const parts=[['消費',st.byType['消費']],['浪費',st.byType['浪費']],['投資',st.byType['投資']],['貯蓄',sav]];
+  $('#types').innerHTML=base?`<div class="stack">${parts.filter(([,v])=>v>0).map(([k,v])=>`<div title="${k} ${yen(v)}" style="flex:${v} 1 0;background:${col[k]}"></div>`).join('')}</div>
+    <div class="legend">${parts.map(([k,v])=>`<span><i style="background:${col[k]}"></i>${k} ${yen(v)}（${pct(v,base).toFixed(0)}％）</span>`).join('')}</div>
+    <p class="hint">目安は「消費70：浪費5：投資25」（投資には自己投資と貯蓄を含む）。</p>`:'<p class="empty">記録がありません</p>';
+  // cats
+  const ref=inc||st.total;
+  const rows=CATS.filter(c=>st.byCat[c]>0).sort((a,b)=>st.byCat[b]-st.byCat[a]);
+  // バーの長さで費目どうしを比べられるよう、全カテゴリを同じ縮尺にする
+  const scale=Math.max(1,...rows.map(c=>Math.max(pct(st.byCat[c],ref),inc?state.guide[c]||0:0)))*1.05;
+  const catRow=c=>{
+    const v=st.byCat[c],p=pct(v,ref),g=state.guide[c]||0;const isOver=inc&&p>g;
+    return `<div class="cat"><div class="h"><span>${c}${isOver?'<span class="tag">目安超え</span>':''}</span><span class="amt">${yen(v)}</span></div>
+      <div class="bar" title="${c} ${yen(v)}"><i class="${isOver?'over':''}" style="width:${Math.min(100,p/scale*100)}%"></i>${inc?`<span class="g" style="left:${g/scale*100}%"></span>`:''}</div>
+      <div class="s">${p.toFixed(1)}％${inc?` / 目安${fmtPct(g)}％`:''}</div></div>`};
+  $('#cats').innerHTML=rows.length?rows.slice(0,6).map(catRow).join('')
+    +(rows.length>6?`<details class="more"><summary>ほかのカテゴリを見る（${rows.length-6}件）</summary>${rows.slice(6).map(catRow).join('')}</details>`:'')
+    +(inc?'':'<p class="hint">手取り未設定のため、支出合計に対する割合で表示しています。</p>'):'<p class="empty">記録がありません</p>';
+  // top
+  const top=[...st.its].sort((a,b)=>b.amount-a.amount).slice(0,5);
+  $('#top').innerHTML=top.length?top.map(i=>`<li><div class="nm"><b>${esc(i.name)}</b><small>${i.cat}${i.fixed?'・固定':''}</small></div>${i.type==='消費'?'':`<span class="chip ${i.type}">${i.type}</span>`}<span class="amt">${yen(i.amount)}</span></li>`).join(''):'<li class="empty">記録がありません</li>';
+}
+
+$('#copySummary').onclick=async()=>{
+  const st=stats(month,'一般'),work=stats(month,'仕事'),biz=bizCalc(month),inc=state.income||0;
+  let t=`【${month} 家計集計】\n手取り：${inc?yen(inc):'未設定'}\n生活費（一般の支出）：${yen(st.total)}\n固定費（一般）：${yen(st.fixed)}\n`;
+  if(biz.entered)t+=`お店の売上：${yen(biz.sales)}\nお店の経費：${yen(biz.expense)}\nお店の利益：${yen(biz.profit)}\n支出合計（経費＋生活費）：${yen(biz.total)}\n残った額（利益−生活費）：${yen(biz.rest)}\n`;
+  if(inc)t+=`貯蓄率：${((inc-st.total)/inc*100).toFixed(1)}％\n`;
+  t+=`一般の内訳：消費 ${yen(st.byType['消費'])}／浪費 ${yen(st.byType['浪費'])}／投資 ${yen(st.byType['投資'])}\n\n■カテゴリ別（一般）\n`;
+  CATS.filter(c=>st.byCat[c]>0).sort((a,b)=>st.byCat[b]-st.byCat[a]).forEach(c=>t+=`${c}：${yen(st.byCat[c])}\n`);
+  t+=`\n■明細\n`;[...st.its,...work.its].sort((a,b)=>b.amount-a.amount).forEach(i=>t+=`${i.name}（${i.book}・${i.cat}${i.fixed?'・固定':''}・${i.type}）${yen(i.amount)}\n`);
+  t+=`\n一般は家計、仕事は事業の支出として分けて考え、FPの視点で、無理なく続けられる節約策を優先順位つきで提案してください。`;
+  try{await navigator.clipboard.writeText(t);toast('コピーしました')}
+  catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('コピーしました')}catch(_){toast('コピーできませんでした')}ta.remove()}
+};
+
+// ---------- 設定 ----------
+function renderSettings(){
+  $('#income').value=state.income||'';
+  const inc=state.income||0;
+  // 作り直すと次の欄へのフォーカスが外れるので、入力欄は最初の1回だけ作り、以降は値を書き換える
+  if(!$('#guide').children.length)$('#guide').innerHTML='<span></span><span class="gh">％</span><span class="gh">金額（円）</span>'+CATS.map(c=>`<span>${c}</span><input data-g="${c}" inputmode="decimal" aria-label="${c}の目安（％）"><input data-y="${c}" inputmode="numeric" aria-label="${c}の目安（円）">`).join('');
+  for(const c of CATS){
+    const g=+state.guide[c]||0;
+    $(`[data-g="${c}"]`).value=fmtPct(g);
+    const y=$(`[data-y="${c}"]`);y.disabled=!inc;y.value=inc?Math.round(inc*g/100).toLocaleString('ja-JP'):'';
+  }
+  const sum=CATS.reduce((s,c)=>s+(+state.guide[c]||0),0);
+  const gs=$('#guideSum');gs.classList.toggle('over',sum>100);
+  if(!inc)gs.textContent=`目安の合計：${fmtPct(sum)}％（貯蓄目標 ${fmtPct(Math.max(0,100-sum))}％）。金額で入れるには、先に手取り月収を入れてください。`;
+  else{
+    const used=CATS.reduce((s,c)=>s+Math.round(inc*(+state.guide[c]||0)/100),0);
+    gs.textContent=used>inc?`目安の合計：${fmtPct(sum)}％（${yen(used)}）。手取りを${yen(used-inc)}超えています。`:`目安の合計：${fmtPct(sum)}％（${yen(used)}）／貯蓄目標 ${fmtPct(Math.max(0,100-sum))}％（${yen(inc-used)}）`;
+  }
+}
+$('#income').addEventListener('change',e=>{state.income=Math.round(parseFloat(normNum(e.target.value).replace(/[,円¥]/g,'')))||0;save();renderAll()});
+$('#guide').addEventListener('change',e=>{
+  const {g,y}=e.target.dataset;
+  if(g)state.guide[g]=Math.max(0,parseFloat(normNum(e.target.value))||0);
+  else if(y)state.guide[y]=Math.max(0,pct(parseFloat(normNum(e.target.value).replace(/[,円¥￥]/g,''))||0,state.income||0));
+  else return;
+  save();renderAll();
+});
+$('#resetGuide').onclick=()=>{state.guide={...DEF_GUIDE};save();renderAll();toast('初期値に戻しました')};
+
+function download(name,text,type){const b=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+$('#exportJson').onclick=()=>download(`kakei-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,1),'application/json');
+$('#exportCsv').onclick=()=>{const rows=[['月','項目','カテゴリ','金額','固定費','分類','区分','利用日']].concat(state.items.map(i=>[i.month,i.name,i.cat,i.amount,i.fixed?'固定':'変動',i.type,i.book,i.date||'']));
+  download('kakei.csv','\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'),'text/csv')};
+$('#importJson').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.items))throw 0;if(!confirm('現在のデータを置き換えて復元します。よろしいですか？'))return;state={income:d.income||0,guide:{...DEF_GUIDE,...(d.guide||{})},items:d.items.map(withBook),biz:d.biz||{},fixedCosts:d.fixedCosts||[]};save();renderAll();toast('復元しました')}catch(err){toast('読み込めないファイルです')}};r.readAsText(f);e.target.value=''};
+$('#wipe').onclick=()=>{if(confirm('すべてのデータを削除します。元に戻せません。よろしいですか？')){state={income:0,guide:{...DEF_GUIDE},items:[],biz:{},fixedCosts:[]};save();renderAll();toast('削除しました')}};
+
+// ---------- 共通 ----------
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['input','analysis','settings'].forEach(t=>$('#tab-'+t).classList.toggle('hide',t!==b.dataset.tab));
+  window.scrollTo(0,0);
+});
+$('#month').addEventListener('change',e=>{if(e.target.value){month=e.target.value;renderAll()}});
+$('#prev').onclick=()=>{month=shiftMonth(month,-1);renderAll()};
+$('#next').onclick=()=>{month=shiftMonth(month,1);renderAll()};
+function renderAll(){applyFixedCosts();$('#month').value=month;renderItems();renderBiz();renderAnalysis();renderSettings();renderFixed()}
+renderAll();
+</script>
+</body>
+</html>
