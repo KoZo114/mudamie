@@ -38,6 +38,7 @@ textarea{min-height:120px}
 .list .nm{flex:1;min-width:0}
 .list .nm b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .list .nm small{color:var(--sub)}
+.list .nm .dt{font-weight:400;font-size:12px;color:var(--sub);margin-right:6px}
 .amt{font-variant-numeric:tabular-nums;white-space:nowrap}
 .chip{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--chip);border:1px solid var(--line);color:var(--ink);cursor:pointer;white-space:nowrap}
 .chip.浪費{background:color-mix(in srgb,var(--bad) 15%,transparent);border-color:var(--bad)}
@@ -170,14 +171,17 @@ textarea{min-height:120px}
 
   <div class="card">
     <h2>まとめて貼り付け</h2>
-    <textarea id="bulk" placeholder="例：&#10;家賃 85000&#10;スーパー 4,320円&#10;Netflix 1490&#10;コンビニ 580&#10;食費 外食ランチ 1200"></textarea>
-    <p class="hint">1行に「項目 金額」。カテゴリは自動で推定します（行頭にカテゴリ名を書けば指定も可）。</p>
+    <textarea id="bulk" placeholder="例：&#10;家賃 85000&#10;11/3 スーパー 4,320円&#10;Netflix 1490&#10;11月5日 コンビニ 580&#10;食費 外食ランチ 1200"></textarea>
+    <p class="hint">1行に「項目 金額」。わかる日だけ、行頭に日付（11/3 や 11月3日）を書くとその日付で記録します。カテゴリは自動で推定します（行頭にカテゴリ名を書けば指定も可）。</p>
     <div class="row" style="margin-top:8px"><button class="btn" id="bulkAdd">一般に取り込む</button></div>
   </div>
 
   <div class="card">
     <h2>1件ずつ追加</h2>
     <div class="row">
+      <div style="flex:0 1 200px"><label>日付</label><input type="date" id="fDate"></div>
+    </div>
+    <div class="row" style="margin-top:8px">
       <div><label>項目</label><input id="fName" placeholder="例：カフェ"></div>
       <div><label>金額（円）</label><input id="fAmt" inputmode="numeric" placeholder="例：650"></div>
     </div>
@@ -224,7 +228,7 @@ textarea{min-height:120px}
     <div id="cats"></div>
   </div>
   <div class="card">
-    <h2>金額の大きい支出（一般）</h2>
+    <h2>金額の大きい支出（一般・固定費を除く）</h2>
     <ul class="list" id="top"></ul>
   </div>
   <div class="card">
@@ -355,18 +359,34 @@ function guessCat(name){const n=kwName(name).toLowerCase();for(const [c,ws] of K
 function guessType(name){const n=kwName(name);return INVEST_KW.some(w=>n.includes(w))?'投資':'消費'}
 function normNum(s){return s.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[，]/g,',')}
 
+// 行頭の日付（11/3、11月3日、2026/11/3、2026-11-03 など。曜日の（月）も可）を読む。
+// 年がなければ表示中の月の年。ただし表示中の月より7か月以上先の月なら前の年（1月を見ていて 12/28 と書いたときなど）
+const DATE_HEAD=/^(?:(\d{4})[\/／\-.年](\d{1,2})[\/／\-.月]|(\d{1,2})[\/／月])(\d{1,2})日?(?:[（(][月火水木金土日][）)])?(?=[\s:：,、]|$)/;
+function headDate(s){
+  const m=s.match(DATE_HEAD);if(!m)return null;
+  const mm=+(m[2]||m[3]),dd=+m[4];let y=m[1]?+m[1]:+month.slice(0,4);
+  if(!m[1]&&mm-+month.slice(5)>6)y--;
+  const d=new Date(y,mm-1,dd);if(d.getMonth()!==mm-1||d.getDate()!==dd)return null;
+  return {date:`${y}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`,rest:s.slice(m[0].length).replace(/^[\s:：,、]+/,'')};
+}
+const monthName=m=>m.slice(0,4)===month.slice(0,4)?`${+m.slice(5)}月`:`${+m.slice(0,4)}年${+m.slice(5)}月`;
+
 function parseLine(line){
   let s=normNum(line.trim());if(!s)return null;
   s=s.replace(/(\d),(?=\d{3}(\D|$))/g,'$1');
+  // 日付はカテゴリ名の前でも後でもよい。なければ表示中の月に、日付なしで記録する
+  let date=null;const takeDate=()=>{const h=date?null:headDate(s);if(h){date=h.date;s=h.rest}};
+  takeDate();
   let cat=null;
   for(const c of CATS){if(s.startsWith(c)){const rest=s.slice(c.length);if(/^[\s:：,、\t】\]]/.test(rest)||rest===''){cat=c;s=rest.replace(/^[\s:：,、\t】\]]+/,'');break}}}
+  takeDate();
   s=s.replace(/^[【\[]/,'');
   const nums=[...s.matchAll(/\d+(\.\d+)?/g)];if(!nums.length)return null;
   const m=nums[nums.length-1];const amount=Math.round(parseFloat(m[0]));
   let name=(s.slice(0,m.index)+s.slice(m.index+m[0].length)).replace(/[¥￥円]/g,'').replace(/[,\t:：、]+/g,' ').replace(/\s+/g,' ').trim()||'（無題）';
   if(!amount)return null;
   const c=cat||guessCat(name);
-  return {id:uid(),month,name,amount,cat:c,type:guessType(name),fixed:FIXED_CATS.has(c),book:curBook};
+  return {id:uid(),month:date?date.slice(0,7):month,name,amount,cat:c,type:guessType(name),fixed:FIXED_CATS.has(c),book:curBook,...(date?{date}:{})};
 }
 
 function monthItems(m){return state.items.filter(i=>i.month===m)}
@@ -386,16 +406,23 @@ $('#listFilter').addEventListener('click',e=>{
   renderItems();
 });
 $('#fName').addEventListener('input',e=>{const c=guessCat(e.target.value);$('#fCat').value=c;$('#fFixed').checked=FIXED_CATS.has(c);$('#fType').value=guessType(e.target.value)});
+// 日付欄は表示中の月に合わせる（今月なら今日、ほかの月ならその月の1日）。同じ月の日付なら続けて入れられるよう残す
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function syncDate(){if($('#fDate').value.slice(0,7)!==month)$('#fDate').value=today().startsWith(month)?today():`${month}-01`}
 $('#addOne').onclick=()=>{
   const name=$('#fName').value.trim();const amount=Math.round(parseFloat(normNum($('#fAmt').value).replace(/[,円¥]/g,'')));
   if(!name||!amount){toast('項目と金額を入れてください');return}
-  state.items.push({id:uid(),month,name,amount,cat:$('#fCat').value,type:$('#fType').value,fixed:$('#fFixed').checked,book:curBook});
-  save();$('#fName').value='';$('#fAmt').value='';$('#fFixed').checked=false;renderAll();toast(`${curBook}に追加しました`);
+  // 日付があればその月に記録する。空なら表示中の月に、日付なしで記録する
+  const date=$('#fDate').value,m=date?date.slice(0,7):month;
+  state.items.push({id:uid(),month:m,name,amount,cat:$('#fCat').value,type:$('#fType').value,fixed:$('#fFixed').checked,book:curBook,...(date?{date}:{})});
+  save();$('#fName').value='';$('#fAmt').value='';$('#fFixed').checked=false;renderAll();
+  toast(m===month?`${curBook}に追加しました`:`${monthName(m)}の${curBook}に追加しました`);
 };
 $('#bulkAdd').onclick=()=>{
-  const lines=$('#bulk').value.split(/\r?\n/);let n=0,skip=0;
-  for(const l of lines){if(!l.trim())continue;const it=parseLine(l);if(it){state.items.push(it);n++}else skip++}
-  save();renderAll();$('#bulk').value='';toast(`${curBook}に${n}件取り込みました`+(skip?`（${skip}行は金額が読めず除外）`:''));
+  const lines=$('#bulk').value.split(/\r?\n/);let n=0,skip=0;const other={};
+  for(const l of lines){if(!l.trim())continue;const it=parseLine(l);if(it){state.items.push(it);n++;if(it.month!==month)other[it.month]=(other[it.month]||0)+1}else skip++}
+  const moved=Object.keys(other).sort().map(m=>`${monthName(m)}に${other[m]}件`).join('、');
+  save();renderAll();$('#bulk').value='';toast(`${curBook}に${n}件取り込みました`+(moved?`（日付から${moved}）`:'')+(skip?`（${skip}行は金額が読めず除外）`:''));
 };
 $('#copyFixed').onclick=()=>{
   const prev=monthItems(shiftMonth(month,-1)).filter(i=>i.fixed);
@@ -596,7 +623,7 @@ function renderItems(){
   const its=all.filter(i=>listFilter==='すべて'||i.book===listFilter).sort((a,b)=>b.amount-a.amount);
   if(!its.length){$('#items').innerHTML='<li class="empty">まだ記録がありません</li>';return}
   $('#items').innerHTML=its.map(i=>`<li>
-    <div class="nm"><b>${esc(i.name)}</b><small>
+    <div class="nm"><b>${i.date?`<span class="dt">${+i.date.slice(5,7)}/${+i.date.slice(8)}</span>`:''}${esc(i.name)}</b><small>
       <select data-cat="${i.id}" style="width:auto;padding:1px 4px;font-size:12px;border-radius:6px">${CATS.map(c=>`<option${c===i.cat?' selected':''}>${c}</option>`).join('')}</select>
       <span class="chip fx" data-fx="${i.id}" style="opacity:${i.fixed?1:.45}">固</span>
       <span class="chip ${i.book}" data-book-of="${i.id}">${i.book}</span></small></div>
@@ -754,9 +781,9 @@ function renderAnalysis(){
   $('#cats').innerHTML=rows.length?rows.slice(0,6).map(catRow).join('')
     +(rows.length>6?`<details class="more"><summary>ほかのカテゴリを見る（${rows.length-6}件）</summary>${rows.slice(6).map(catRow).join('')}</details>`:'')
     +(inc?'':'<p class="hint">手取り未設定のため、支出合計に対する割合で表示しています。</p>'):'<p class="empty">記録がありません</p>';
-  // top
-  const top=[...st.its].sort((a,b)=>b.amount-a.amount).slice(0,5);
-  $('#top').innerHTML=top.length?top.map(i=>`<li><div class="nm"><b>${esc(i.name)}</b><small>${i.cat}${i.fixed?'・固定':''}</small></div>${i.type==='消費'?'':`<span class="chip ${i.type}">${i.type}</span>`}<span class="amt">${yen(i.amount)}</span></li>`).join(''):'<li class="empty">記録がありません</li>';
+  // top（固定費は毎月決まっているので除き、見直せる出費だけを並べる）
+  const top=st.its.filter(i=>!i.fixed).sort((a,b)=>b.amount-a.amount).slice(0,5);
+  $('#top').innerHTML=top.length?top.map(i=>`<li><div class="nm"><b>${esc(i.name)}</b><small>${i.cat}</small></div>${i.type==='消費'?'':`<span class="chip ${i.type}">${i.type}</span>`}<span class="amt">${yen(i.amount)}</span></li>`).join(''):`<li class="empty">${st.its.length?'固定費以外の記録がありません':'記録がありません'}</li>`;
 }
 
 $('#copySummary').onclick=async()=>{
@@ -817,7 +844,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 $('#month').addEventListener('change',e=>{if(e.target.value){month=e.target.value;renderAll()}});
 $('#prev').onclick=()=>{month=shiftMonth(month,-1);renderAll()};
 $('#next').onclick=()=>{month=shiftMonth(month,1);renderAll()};
-function renderAll(){applyFixedCosts();$('#month').value=month;renderItems();renderBiz();renderAnalysis();renderSettings();renderFixed()}
+function renderAll(){applyFixedCosts();$('#month').value=month;syncDate();renderItems();renderBiz();renderAnalysis();renderSettings();renderFixed()}
 renderAll();
 </script>
 </body>
