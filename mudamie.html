@@ -70,8 +70,8 @@ textarea{min-height:120px}
 .flow dd{margin:0;font-variant-numeric:tabular-nums}
 .flow .sub{border-top:1px solid var(--line);font-weight:600}
 .flow .sub dt{color:var(--ink)}
-.more summary{cursor:pointer;color:var(--accent);font-size:13.5px;padding:2px 0}
-.more[open] summary{margin-bottom:10px}
+.more>summary{cursor:pointer;color:var(--accent);font-size:13.5px;padding:2px 0}
+.more[open]>summary{margin-bottom:10px}
 .bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;position:relative}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .bar i.over{background:var(--warn)}
@@ -80,6 +80,13 @@ textarea{min-height:120px}
 .cat .h{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:3px}
 .cat .tag{margin-left:6px}
 .cat .s{font-size:12px;color:var(--sub);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+details.cat>summary{list-style:none;cursor:pointer}
+details.cat>summary::-webkit-details-marker{display:none}
+.cat .cv{display:inline-block;width:1em;color:var(--sub);transition:transform .15s}
+details.cat>summary:hover .cv{color:var(--accent)}
+details.cat[open] .cv{transform:rotate(90deg)}
+.cat-d{margin-top:8px;padding:2px 12px 6px;background:var(--bg);border-radius:10px}
+.cat-d>.hint{margin:6px 0 0}
 .stack{display:flex;gap:2px;height:14px;border-radius:99px;overflow:hidden;margin:6px 0 8px}
 .stack div{height:100%}
 .legend{display:flex;gap:12px;font-size:12.5px;color:var(--sub);flex-wrap:wrap}
@@ -773,11 +780,17 @@ function renderAnalysis(){
   const rows=CATS.filter(c=>st.byCat[c]>0).sort((a,b)=>st.byCat[b]-st.byCat[a]);
   // バーの長さで費目どうしを比べられるよう、全カテゴリを同じ縮尺にする
   const scale=Math.max(1,...rows.map(c=>Math.max(pct(st.byCat[c],ref),inc?state.guide[c]||0:0)))*1.05;
+  // カテゴリを押すと開く明細。多いときは10件まで見せて、残りは折りたたむ
+  const catDetail=(c,v,g)=>{
+    const its=st.its.filter(i=>i.cat===c).sort((a,b)=>b.amount-a.amount),gAmt=Math.round(inc*g/100);
+    const li=i=>`<li><div class="nm"><b>${i.date?`<span class="dt">${+i.date.slice(5,7)}/${+i.date.slice(8)}</span>`:''}${esc(i.name)}</b>${i.fixed?'<small>固定費</small>':''}</div>${i.type==='消費'?'':`<span class="chip ${i.type}">${i.type}</span>`}<span class="amt">${yen(i.amount)}</span></li>`;
+    return `<div class="cat-d"><p class="hint">${its.length}件${inc?`・目安 ${yen(gAmt)}（${v>gAmt?`${yen(v-gAmt)} 超え`:`あと ${yen(gAmt-v)}`}）`:''}</p>
+      <ul class="list">${its.slice(0,10).map(li).join('')}</ul>${its.length>10?`<details class="more"><summary>残りの${its.length-10}件を見る</summary><ul class="list">${its.slice(10).map(li).join('')}</ul></details>`:''}</div>`};
   const catRow=c=>{
     const v=st.byCat[c],p=pct(v,ref),g=state.guide[c]||0;const isOver=inc&&p>g;
-    return `<div class="cat"><div class="h"><span>${c}${isOver?'<span class="tag">目安超え</span>':''}</span><span class="amt">${yen(v)}</span></div>
+    return `<details class="cat"><summary><div class="h"><span><span class="cv" aria-hidden="true">›</span>${c}${isOver?'<span class="tag">目安超え</span>':''}</span><span class="amt">${yen(v)}</span></div>
       <div class="bar" title="${c} ${yen(v)}"><i class="${isOver?'over':''}" style="width:${Math.min(100,p/scale*100)}%"></i>${inc?`<span class="g" style="left:${g/scale*100}%"></span>`:''}</div>
-      <div class="s">${p.toFixed(1)}％${inc?` / 目安${fmtPct(g)}％`:''}</div></div>`};
+      <div class="s">${p.toFixed(1)}％${inc?` / 目安${fmtPct(g)}％`:''}</div></summary>${catDetail(c,v,g)}</details>`};
   $('#cats').innerHTML=rows.length?rows.slice(0,6).map(catRow).join('')
     +(rows.length>6?`<details class="more"><summary>ほかのカテゴリを見る（${rows.length-6}件）</summary>${rows.slice(6).map(catRow).join('')}</details>`:'')
     +(inc?'':'<p class="hint">手取り未設定のため、支出合計に対する割合で表示しています。</p>'):'<p class="empty">記録がありません</p>';
