@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-tab="input">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,6 +9,15 @@
 <style>
 :root{--bg:#f5f3ee;--card:#fff;--ink:#22252a;--sub:#6b6f76;--line:#e3e0d8;--accent:#2f6f5e;--accent-ink:#fff;--warn:#b8641f;--bad:#b23a3a;--good:#2f6f5e;--chip:#eef3f1;--bar:#d9e6e1;--work:#3f6ea8;--work-ink:#fff}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b;--card:#1f2226;--ink:#e9e7e2;--sub:#9aa0a6;--line:#30353a;--accent:#5fb39a;--accent-ink:#0f1a16;--warn:#e08a52;--bad:#e06a6a;--good:#5fb39a;--chip:#22302b;--bar:#2a3a34;--work:#7aa5dc;--work-ink:#0f1a26}}
+/* タブごとに背景をうっすら色分けする（入力＝緑み、分析＝青み、設定＝あたたかい砂色）。カードの色は変えない */
+:root[data-tab="input"]{--bg:#eef5f0}
+:root[data-tab="analysis"]{--bg:#edf1f8}
+:root[data-tab="settings"]{--bg:#f6f1ea}
+@media (prefers-color-scheme:dark){
+  :root[data-tab="input"]:not([data-theme="light"]){--bg:#111d17}
+  :root[data-tab="analysis"]:not([data-theme="light"]){--bg:#111822}
+  :root[data-tab="settings"]:not([data-theme="light"]){--bg:#1e1a14}
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.6}
 header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
@@ -919,6 +928,7 @@ $('#wipe').onclick=()=>{if(confirm('すべてのデータを削除します。�
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   ['input','analysis','settings'].forEach(t=>$('#tab-'+t).classList.toggle('hide',t!==b.dataset.tab));
+  document.documentElement.dataset.tab=b.dataset.tab;
   window.scrollTo(0,0);
 });
 $('#month').addEventListener('change',e=>{if(e.target.value){month=e.target.value;renderAll()}});
