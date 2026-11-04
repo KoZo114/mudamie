@@ -133,7 +133,8 @@ details.cat[open] .cv{transform:rotate(90deg)}
 .chara img{width:132px;height:132px;flex:none;margin-left:-12px}
 .chara .say{position:relative;flex:1;min-width:0;background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
 .chara .say::before{content:"";position:absolute;left:-6px;top:50%;width:10px;height:10px;margin-top:-5px;background:var(--chip);border-left:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg)}
-.chara .say:first-child::before{display:none}
+.chara img[hidden]{display:none}
+.chara img[hidden]+.say::before{display:none}
 .empty{color:var(--sub);text-align:center;padding:16px 0;font-size:14px}
 .gl{display:grid;grid-template-columns:1fr 66px 100px;gap:6px 8px;align-items:center}
 .gl input{text-align:right;font-variant-numeric:tabular-nums;padding:8px}
@@ -772,7 +773,15 @@ function renderChara(st){
   const face=charaFace(st);
   // 記録はあるのに手取りだけ未設定のときは、出費を促さず手取りの入力を案内する
   const say=charaSay(face==='normal'&&st.its.length?'noIncome':face,month);
-  $('#chara').innerHTML=`<img src="images/chara/app/${face}.png" alt="" onerror="this.remove()"><div class="say">${say}</div>`;
+  // 画像の要素は作り直さずに使い回す。読み込めなかったときは隠すだけにして、次に表示するときにもう一度読み込む
+  let img=$('#chara img');
+  if(!img){
+    $('#chara').innerHTML='<img alt=""><div class="say"></div>';img=$('#chara img');
+    img.onerror=()=>{img.hidden=true};img.onload=()=>{img.hidden=false};
+  }
+  const src=`images/chara/app/${face}.png`;
+  if(img.getAttribute('src')!==src||img.hidden)img.src=src;
+  $('#chara .say').textContent=say;
 }
 
 // ---------- お店（売上と経費は手入力。明細からは足さない） ----------
