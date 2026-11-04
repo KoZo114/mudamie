@@ -9,35 +9,49 @@
 <style>
 :root{--bg:#f5f3ee;--card:#fff;--ink:#22252a;--sub:#6b6f76;--line:#e3e0d8;--accent:#2f6f5e;--accent-ink:#fff;--warn:#b8641f;--bad:#b23a3a;--good:#2f6f5e;--chip:#eef3f1;--bar:#d9e6e1;--work:#3f6ea8;--work-ink:#fff}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181b;--card:#1f2226;--ink:#e9e7e2;--sub:#9aa0a6;--line:#30353a;--accent:#5fb39a;--accent-ink:#0f1a16;--warn:#e08a52;--bad:#e06a6a;--good:#5fb39a;--chip:#22302b;--bar:#2a3a34;--work:#7aa5dc;--work-ink:#0f1a26}}
-/* タブごとに背景をうっすら色分けする（入力＝緑み、分析＝青み、設定＝あたたかい砂色）。カードの色は変えない */
-:root[data-tab="input"]{--bg:#eef5f0}
-:root[data-tab="analysis"]{--bg:#edf1f8}
-:root[data-tab="settings"]{--bg:#f6f1ea}
+/* タブごとに背景をうっすら色分けする（入力＝緑み、分析＝青み、設定＝あたたかい砂色）。
+   --tab はタブの色で、選んでいるタブのボタン・見出しの印・先頭カードの色みに使う。グラフや分類の色（--accent など）は変えない */
+:root{--tab:#2f6f5e;--tab-ink:#fff;--shadow:0 1px 2px rgba(30,35,40,.05),0 8px 20px -12px rgba(30,35,40,.18)}
+:root[data-tab="input"]{--bg:#eef5f0;--tab:#2f6f5e}
+:root[data-tab="analysis"]{--bg:#edf1f8;--tab:#3d6a9e}
+:root[data-tab="settings"]{--bg:#f6f1ea;--tab:#94672c}
 @media (prefers-color-scheme:dark){
-  :root[data-tab="input"]:not([data-theme="light"]){--bg:#111d17}
-  :root[data-tab="analysis"]:not([data-theme="light"]){--bg:#111822}
-  :root[data-tab="settings"]:not([data-theme="light"]){--bg:#1e1a14}
+  :root:not([data-theme="light"]){--tab-ink:#121417;--shadow:none}
+  :root[data-tab="input"]:not([data-theme="light"]){--bg:#111d17;--tab:#5fb39a}
+  :root[data-tab="analysis"]:not([data-theme="light"]){--bg:#111822;--tab:#7aa5dc}
+  :root[data-tab="settings"]:not([data-theme="light"]){--bg:#1e1a14;--tab:#d4a35f}
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.6}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.6;transition:background-color .2s}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(10px);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line);padding:10px 16px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:760px;margin:0 auto}
-h1{font-size:17px;margin:0;letter-spacing:.02em}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.brand img{width:34px;height:34px;flex:none;border-radius:50%;background:var(--card);box-shadow:0 0 0 2px var(--card),0 0 0 3px var(--line)}
+h1{font-size:18px;line-height:1.2;margin:0;letter-spacing:.04em}
+.brand small{display:block;font-size:11px;line-height:1.3;color:var(--sub);white-space:nowrap}
 .month{display:flex;align-items:center;gap:4px}
-.month input{width:132px}
-nav{display:flex;gap:6px;max-width:760px;margin:8px auto 0}
-nav button{flex:1;padding:8px 0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-size:14px}
-nav button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-main{max-width:760px;margin:0 auto;padding:12px 16px 80px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.card h2{font-size:15px;margin:0 0 10px}
+.month input{width:132px;background:var(--card)}
+nav{display:flex;gap:4px;max-width:760px;margin:10px auto 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:13px}
+nav button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 0;border:none;background:transparent;color:var(--sub);border-radius:9px;font:inherit;font-size:14px;cursor:pointer;transition:background-color .15s,color .15s}
+nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav button:hover{color:var(--ink)}
+nav button.on{background:var(--tab);color:var(--tab-ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+main{max-width:760px;margin:0 auto;padding:14px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card h2{display:flex;align-items:center;flex-wrap:wrap;gap:0 8px;font-size:15px;margin:0 0 12px}
+.card h2::before{content:"";flex:none;width:4px;height:15px;border-radius:2px;background:var(--tab)}
+/* 分析の先頭のカードは、タブの色をうっすら重ねて目立たせる */
+#summary{background:linear-gradient(150deg,color-mix(in srgb,var(--tab) 11%,var(--card)) 0%,var(--card) 65%)}
+#yearSum{background:linear-gradient(150deg,color-mix(in srgb,var(--tab) 6%,var(--card)) 0%,var(--card) 60%)}
 label{font-size:13px;color:var(--sub);display:block;margin-bottom:4px}
 input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
 textarea{min-height:120px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .row>*{flex:1;min-width:120px}
-.btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-size:14px;cursor:pointer}
-.btn.ghost{background:transparent;color:var(--accent)}
+.btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.1);transition:filter .15s}
+.btn:hover{filter:brightness(1.07)}
+.btn.ghost{background:transparent;color:var(--accent);box-shadow:none}
 .btn.sm{padding:4px 10px;font-size:13px}
 .icon{border:none;background:none;color:var(--sub);font-size:18px;padding:4px 8px;cursor:pointer}
 .hint{font-size:12.5px;color:var(--sub);margin:6px 0 0}
@@ -148,7 +162,10 @@ details.cat[open] .cv{transform:rotate(90deg)}
 <body>
 <header>
   <div class="top">
-    <h1>ムダミエ</h1>
+    <div class="brand">
+      <img src="images/chara/icon/apple-touch-icon.png" alt="" onerror="this.remove()">
+      <div><h1>ムダミエ</h1><small>ムダが見える家計簿</small></div>
+    </div>
     <div class="month">
       <button class="icon" id="prev" aria-label="前月">‹</button>
       <input type="month" id="month">
@@ -156,9 +173,9 @@ details.cat[open] .cv{transform:rotate(90deg)}
     </div>
   </div>
   <nav>
-    <button data-tab="input" class="on">入力</button>
-    <button data-tab="analysis">分析</button>
-    <button data-tab="settings">設定</button>
+    <button data-tab="input" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/></svg>入力</button>
+    <button data-tab="analysis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-3"/></svg>分析</button>
+    <button data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>設定</button>
   </nav>
 </header>
 
