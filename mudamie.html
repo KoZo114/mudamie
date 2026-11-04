@@ -57,10 +57,17 @@ textarea{min-height:120px}
 .kpis.three .kpi{min-width:0;padding:8px 10px}
 .kpis.three b{font-size:16px;white-space:nowrap}
 @media (min-width:480px){.kpis.three{grid-template-columns:repeat(3,1fr)}}
-#summary{display:grid;gap:10px}
-@media (min-width:560px){#summary{grid-template-columns:1fr 1fr;align-items:center;gap:10px 24px}}
-#summary .hint{margin:4px 0 0}
-#summary .note{grid-column:1/-1;margin:0}
+#summary,#yearSum{display:grid;gap:10px}
+@media (min-width:560px){#summary,#yearSum{grid-template-columns:1fr 1fr;align-items:center;gap:10px 24px}}
+#summary .hint,#yearSum .hint{margin:4px 0 0}
+#summary .note,#yearSum .note,#yearSum .yt{grid-column:1/-1;margin:0}
+.ytable{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.ytable th,.ytable td{padding:5px 4px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.ytable th:first-child,.ytable td:first-child{text-align:left}
+.ytable thead th{color:var(--sub);font-weight:400;font-size:12px}
+.ytable tfoot th{border-bottom:none}
+.ytable .neg{color:var(--bad)}
+#yearSum.hide{display:none}
 .hero-label{font-size:13px;color:var(--sub)}
 .hero-num{font-size:34px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
 .hero-num.neg{color:var(--bad)}
@@ -221,6 +228,7 @@ details.cat[open] .cv{transform:rotate(90deg)}
 <!-- 分析 -->
 <section id="tab-analysis" class="hide">
   <div class="card" id="summary"></div>
+  <div class="card hide" id="yearSum"></div>
   <div class="card">
     <h2>アドバイス</h2>
     <div class="chara" id="chara"></div>
@@ -746,6 +754,29 @@ function bizCalc(m){
   const b=state.biz[m]||{},sales=+b.sales||0,expense=+b.expense||0,st=stats(m,'一般'),living=st.total;
   return {sales,expense,living,saved:st.saved,entered:sales>0||expense>0,profit:sales-expense,total:expense+living,rest:sales-expense-living};
 }
+// 分析の先頭カード（月）と年間カードで使う、大きな数字と計算の内訳
+const hero=(label,v,sub,rows)=>`<div><div class="hero-label">${label}</div><div class="hero-num${v<0?' neg':''}">${yen(v)}</div><p class="hint">${v<0?'マイナスです。':''}${sub}</p></div>`
+  +(rows?`<dl class="flow">${rows.map(([k,n,c])=>`<div class="${c||''}"><dt>${k}</dt><dd>${yen(n)}</dd></div>`).join('')}</dl>`:'');
+// 年間の累計。記録のある月を1月から順に足す（売上−経費−生活費＝残高。売上が未入力の月は0円）
+function yearCalc(y){
+  const ms=[];
+  for(let k=1;k<=12;k++){const m=`${y}-${String(k).padStart(2,'0')}`,b=bizCalc(m);if(b.entered||b.living||b.saved)ms.push({m,...b})}
+  const sum=f=>ms.reduce((s,x)=>s+x[f],0),sales=sum('sales'),expense=sum('expense'),living=sum('living');
+  return {ms,sales,expense,living,saved:sum('saved'),cost:expense+living,rest:sales-expense-living,entered:ms.some(x=>x.entered),missing:ms.filter(x=>!x.entered).map(x=>x.m)};
+}
+function renderYear(){
+  const y=month.slice(0,4),Y=yearCalc(y),el=$('#yearSum');
+  el.classList.toggle('hide',!Y.ms.length);if(!Y.ms.length)return;
+  const mn=m=>`${+m.slice(5)}月`,range=Y.ms.length>1?`${mn(Y.ms[0].m)}〜${mn(Y.ms[Y.ms.length-1].m)}`:mn(Y.ms[0].m);
+  const sav=Y.saved?[['うち貯金',Y.saved,'in']]:[];
+  const table=`<details class="more yt"><summary>月ごとに見る</summary><table class="ytable"><thead><tr><th>月</th><th>売上</th><th>費用</th><th>残高</th></tr></thead>
+    <tbody>${Y.ms.map(x=>`<tr><td>${mn(x.m)}</td><td>${x.entered?yen(x.sales):'—'}</td><td>${yen(x.total)}</td><td class="${x.rest<0?'neg':''}">${yen(x.rest)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><th>合計</th><th>${yen(Y.sales)}</th><th>${yen(Y.cost)}</th><th class="${Y.rest<0?'neg':''}">${yen(Y.rest)}</th></tr></tfoot></table></details>`;
+  const missing=Y.entered&&Y.missing.length?`<p class="hint note">売上・経費が未入力の月があります（${Y.missing.map(mn).join('、')}）。その月の売上は0円として計算しています。</p>`:'';
+  el.innerHTML=(Y.entered?hero(`${y}年の残高（${range}の累計）`,Y.rest,`売上合計から費用合計（経費＋生活費）を引いた額です。`,[['売上合計',Y.sales],['− 費用合計',Y.cost],['経費',Y.expense,'in'],['生活費',Y.living,'in'],['残高',Y.rest,'sub'],...sav])
+    :hero(`${y}年の生活費（${range}の累計）`,Y.living,'「入力」タブで売上と経費を入れると、年間の残高を計算します。',[['生活費',Y.living],...sav]))
+    +missing+table;
+}
 function renderBiz(){
   const b=bizCalc(month),worked=stats(month,'仕事').total;
   $('#bizMonth').textContent=month;
@@ -755,8 +786,6 @@ function renderBiz(){
   const note=worked?`「仕事」に仕分けた明細 ${yen(worked)} は、経費に自動では足していません。`:'';
   $('#bizNote').textContent=note;
   const inc=state.income||0;
-  const hero=(label,v,sub,rows)=>`<div><div class="hero-label">${label}</div><div class="hero-num${v<0?' neg':''}">${yen(v)}</div><p class="hint">${v<0?'マイナスです。':''}${sub}</p></div>`
-    +(rows?`<dl class="flow">${rows.map(([k,n,c])=>`<div class="${c||''}"><dt>${k}</dt><dd>${yen(n)}</dd></div>`).join('')}</dl>`:'');
   // 売上があれば売上から、なければ手取りから、どちらもなければ生活費だけを見せる
   const mLabel=`${+month.slice(5)}月`;
   // 貯金は生活費に含めず、残りのうち貯金に回した額として見せる
@@ -835,6 +864,8 @@ $('#copySummary').onclick=async()=>{
   const st=stats(month,'一般'),work=stats(month,'仕事'),biz=bizCalc(month),inc=state.income||0;
   let t=`【${month} 家計集計】\n手取り：${inc?yen(inc):'未設定'}\n生活費（一般の支出）：${yen(st.total)}\n固定費（一般）：${yen(st.fixed)}\n`;
   if(biz.entered)t+=`お店の売上：${yen(biz.sales)}\nお店の経費：${yen(biz.expense)}\nお店の利益：${yen(biz.profit)}\n支出合計（経費＋生活費）：${yen(biz.total)}\n残った額（利益−生活費）：${yen(biz.rest)}\n`;
+  const Y=yearCalc(month.slice(0,4));
+  if(Y.entered)t+=`${month.slice(0,4)}年の累計（${Y.ms.length}か月分）：売上 ${yen(Y.sales)}／費用 ${yen(Y.cost)}（経費 ${yen(Y.expense)}＋生活費 ${yen(Y.living)}）／残高 ${yen(Y.rest)}\n`;
   if(inc)t+=`貯蓄率：${((inc-st.total)/inc*100).toFixed(1)}％\n`;
   if(st.saved)t+=`貯金（生活費とは別）：${yen(st.saved)}${inc?`（手取りの${pct(st.saved,inc).toFixed(1)}％／目標 ${fmtPct(+state.guide[SAVE]||0)}％）`:''}\n`;
   t+=`一般の内訳：消費 ${yen(st.byType['消費'])}／浪費 ${yen(st.byType['浪費'])}／投資 ${yen(st.byType['投資'])}\n\n■カテゴリ別（一般）\n`;
@@ -893,7 +924,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 $('#month').addEventListener('change',e=>{if(e.target.value){month=e.target.value;renderAll()}});
 $('#prev').onclick=()=>{month=shiftMonth(month,-1);renderAll()};
 $('#next').onclick=()=>{month=shiftMonth(month,1);renderAll()};
-function renderAll(){applyFixedCosts();$('#month').value=month;syncDate();renderItems();renderBiz();renderAnalysis();renderSettings();renderFixed()}
+function renderAll(){applyFixedCosts();$('#month').value=month;syncDate();renderItems();renderBiz();renderYear();renderAnalysis();renderSettings();renderFixed()}
 renderAll();
 </script>
 </body>
